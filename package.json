@@ -1,0 +1,33 @@
+{
+  "name": "@f2b/mcp-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "description": "灵境云 MCP 网关：将沙箱能力暴露为 MCP tools",
+  "type": "module",
+  "bin": {
+    "f2b-mcp-gateway": "./src/index.ts"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "smoke": "tsx scripts/smoke.ts"
+  },
+  "dependencies": {
+    "@f2b/sdk": "file:../f2b-sdk-js",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/f2b-dev/f2b-mcp-gateway.git"
+  }
+}
