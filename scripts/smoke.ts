@@ -1,6 +1,6 @@
 /**
- * MCP 冒烟：stdio 拉起网关 → listTools → create → run → kill
- * 依赖本地 f2b-sandbox（默认 :8787）。
+ * MCP 冒烟：stdio 拉起网关 → listTools → create → run → pause/resume → templates → kill
+ * 依赖本地 f2b-sandbox（默认 :13287）。
  */
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -9,7 +9,7 @@ import path from "node:path";
 import { TOOL_NAMES } from "../src/tools.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const baseUrl = process.env.F2B_SANDBOX_URL ?? "http://127.0.0.1:8787";
+const baseUrl = process.env.F2B_SANDBOX_URL ?? "http://127.0.0.1:13287";
 
 function textOf(result: {
   content?: Array<{ type: string; text?: string }>;
@@ -22,7 +22,6 @@ function textOf(result: {
 }
 
 async function main() {
-  // 先确认 sandbox 可达
   const hz = await fetch(`${baseUrl}/healthz`).catch(() => null);
   if (!hz?.ok) {
     throw new Error(`f2b-sandbox unreachable at ${baseUrl}`);
@@ -70,6 +69,46 @@ async function main() {
     throw new Error(`stdout missing marker: ${ranText}`);
   }
   console.log("run ok");
+
+  const paused = await client.callTool({
+    name: "sandbox_pause",
+    arguments: { sandboxId: id },
+  });
+  if (paused.isError) throw new Error(textOf(paused as never));
+  const pauseJson = JSON.parse(textOf(paused as never)) as {
+    sandbox: { status: string };
+  };
+  if (pauseJson.sandbox.status !== "paused") {
+    throw new Error(`expected paused, got ${pauseJson.sandbox.status}`);
+  }
+
+  const resumed = await client.callTool({
+    name: "sandbox_resume",
+    arguments: { sandboxId: id },
+  });
+  if (resumed.isError) throw new Error(textOf(resumed as never));
+  const resumeJson = JSON.parse(textOf(resumed as never)) as {
+    sandbox: { status: string };
+  };
+  if (resumeJson.sandbox.status !== "running") {
+    throw new Error(`expected running, got ${resumeJson.sandbox.status}`);
+  }
+
+  const templates = await client.callTool({
+    name: "sandbox_templates",
+    arguments: {},
+  });
+  if (templates.isError) throw new Error(textOf(templates as never));
+  const tplText = textOf(templates as never);
+  if (!tplText.includes("base")) {
+    throw new Error(`templates missing base: ${tplText}`);
+  }
+
+  const usage = await client.callTool({
+    name: "sandbox_usage",
+    arguments: { days: 7 },
+  });
+  if (usage.isError) throw new Error(textOf(usage as never));
 
   const killed = await client.callTool({
     name: "sandbox_kill",

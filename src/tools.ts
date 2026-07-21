@@ -132,6 +132,44 @@ export function createToolHandlers(client: F2bClient) {
       }
     },
 
+    async sandbox_pause(input: { sandboxId: string }) {
+      try {
+        const sb = await client.getSandbox(input.sandboxId);
+        const record = await sb.pause();
+        return textResult({ sandbox: record });
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+
+    async sandbox_resume(input: { sandboxId: string }) {
+      try {
+        const sb = await client.getSandbox(input.sandboxId);
+        const record = await sb.resume();
+        return textResult({ sandbox: record });
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+
+    async sandbox_templates() {
+      try {
+        const templates = await client.listTemplates();
+        return textResult({ templates });
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+
+    async sandbox_usage(input: { days?: number }) {
+      try {
+        const usage = await client.getUsage(input.days ?? 7);
+        return textResult({ usage });
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+
     async sandbox_kill(input: { sandboxId: string }) {
       try {
         const sb = await client.getSandbox(input.sandboxId);
@@ -153,5 +191,9 @@ export const TOOL_NAMES = [
   "sandbox_write_file",
   "sandbox_read_file",
   "sandbox_list_files",
+  "sandbox_pause",
+  "sandbox_resume",
+  "sandbox_templates",
+  "sandbox_usage",
   "sandbox_kill",
 ] as const;

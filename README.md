@@ -19,11 +19,15 @@
 | `sandbox_write_file` | `POST /v1/sandboxes/{id}/files` |
 | `sandbox_read_file` | `GET /v1/sandboxes/{id}/files?path=` |
 | `sandbox_list_files` | `GET .../files?list=1` |
+| `sandbox_pause` | `POST .../pause` |
+| `sandbox_resume` | `POST .../resume` |
+| `sandbox_templates` | `GET /v1/templates` |
+| `sandbox_usage` | `GET /v1/usage` |
 | `sandbox_kill` | `DELETE /v1/sandboxes/{id}` |
 
 ## 本地开发
 
-前置：`f2b-sandbox` 在 `http://127.0.0.1:8787` 运行（`F2B_AUTH_MODE=off` 或提供 `F2B_API_KEY`）。
+前置：`f2b-sandbox` 在 `http://127.0.0.1:13287` 运行（`F2B_AUTH_MODE=off` 或提供 `F2B_API_KEY`）。
 
 ```bash
 # 同级目录需有 f2b-sdk-js、f2b-spec（file: 依赖）
@@ -37,7 +41,7 @@ pnpm start          # stdio 服务（需 MCP 客户端拉起）
 
 | 变量 | 默认 | 说明 |
 |------|------|------|
-| `F2B_SANDBOX_URL` | `http://127.0.0.1:8787` | 沙箱服务根 URL |
+| `F2B_SANDBOX_URL` | `http://127.0.0.1:13287` | 沙箱服务根 URL |
 | `F2B_PATH_PREFIX` | `/v1` | API 前缀 |
 | `F2B_API_KEY` | （空） | 用户 API Key；鉴权关闭时可省略 |
 
@@ -50,7 +54,7 @@ pnpm start          # stdio 服务（需 MCP 客户端拉起）
       "command": "pnpm",
       "args": ["--dir", "/path/to/f2b-mcp-gateway", "exec", "tsx", "src/index.ts"],
       "env": {
-        "F2B_SANDBOX_URL": "http://127.0.0.1:8787",
+        "F2B_SANDBOX_URL": "http://127.0.0.1:13287",
         "F2B_API_KEY": "f2b_sk_…"
       }
     }

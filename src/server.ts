@@ -114,6 +114,52 @@ export function createMcpServer(client: F2bClient): McpServer {
   );
 
   server.registerTool(
+    "sandbox_pause",
+    {
+      title: "暂停沙箱",
+      description: "暂停运行中的沙箱；暂停后命令会返回 SANDBOX_NOT_RUNNING。",
+      inputSchema: {
+        sandboxId: z.string(),
+      },
+    },
+    async (args) => h.sandbox_pause(args),
+  );
+
+  server.registerTool(
+    "sandbox_resume",
+    {
+      title: "恢复沙箱",
+      description: "将 paused 沙箱恢复为 running。",
+      inputSchema: {
+        sandboxId: z.string(),
+      },
+    },
+    async (args) => h.sandbox_resume(args),
+  );
+
+  server.registerTool(
+    "sandbox_templates",
+    {
+      title: "模板目录",
+      description: "列出可用沙箱模板（id 即创建时的 template）。",
+      inputSchema: {},
+    },
+    async () => h.sandbox_templates(),
+  );
+
+  server.registerTool(
+    "sandbox_usage",
+    {
+      title: "用量摘要",
+      description: "近 N 日用量聚合（默认 7，最大 90）。",
+      inputSchema: {
+        days: z.number().int().positive().optional(),
+      },
+    },
+    async (args) => h.sandbox_usage(args),
+  );
+
+  server.registerTool(
     "sandbox_kill",
     {
       title: "销毁沙箱",
