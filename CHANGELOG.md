@@ -6,6 +6,7 @@
 
 ### Added
 
+- pnpm override `@hono/node-server>=2.0.5`（传递依赖审计）
 - CI smoke（fake sandbox + 可选 tunnel）
 
 ## [0.1.0] - 2026-07
