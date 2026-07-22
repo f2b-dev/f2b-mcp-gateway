@@ -162,6 +162,34 @@ export function createMcpServer(client: F2bClient): McpServer {
   );
 
   server.registerTool(
+    "sandbox_mkdir",
+    {
+      title: "创建目录",
+      description: "在沙箱内创建目录（默认 recursive）。",
+      inputSchema: {
+        sandboxId: z.string(),
+        path: z.string().describe("绝对路径，如 /home/user/work"),
+        recursive: z.boolean().optional().describe("默认 true"),
+      },
+    },
+    async (args) => h.sandbox_mkdir(args),
+  );
+
+  server.registerTool(
+    "sandbox_rename",
+    {
+      title: "重命名/移动",
+      description: "重命名或移动沙箱内文件/目录。",
+      inputSchema: {
+        sandboxId: z.string(),
+        from: z.string().describe("源绝对路径"),
+        to: z.string().describe("目标绝对路径"),
+      },
+    },
+    async (args) => h.sandbox_rename(args),
+  );
+
+  server.registerTool(
     "sandbox_pause",
     {
       title: "暂停沙箱",

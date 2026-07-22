@@ -178,6 +178,34 @@ export function createToolHandlers(client: F2bClient) {
       }
     },
 
+    async sandbox_mkdir(input: {
+      sandboxId: string;
+      path: string;
+      recursive?: boolean;
+    }) {
+      try {
+        const sb = await client.getSandbox(input.sandboxId);
+        await sb.mkdir(input.path, { recursive: input.recursive !== false });
+        return textResult({ ok: true, path: input.path });
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+
+    async sandbox_rename(input: {
+      sandboxId: string;
+      from: string;
+      to: string;
+    }) {
+      try {
+        const sb = await client.getSandbox(input.sandboxId);
+        await sb.rename(input.from, input.to);
+        return textResult({ ok: true, from: input.from, to: input.to });
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+
     async sandbox_pause(input: { sandboxId: string }) {
       try {
         const sb = await client.getSandbox(input.sandboxId);
@@ -239,6 +267,8 @@ export const TOOL_NAMES = [
   "sandbox_read_file",
   "sandbox_list_files",
   "sandbox_delete_file",
+  "sandbox_mkdir",
+  "sandbox_rename",
   "sandbox_pause",
   "sandbox_resume",
   "sandbox_templates",
