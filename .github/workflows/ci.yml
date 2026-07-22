@@ -16,24 +16,24 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout mcp-gateway
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: f2b-mcp-gateway
 
       - name: Checkout f2b-spec
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: f2b-dev/f2b-spec
           path: f2b-spec
 
       - name: Checkout f2b-sdk-js
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: f2b-dev/f2b-sdk-js
           path: f2b-sdk-js
 
       - name: Checkout f2b-sandbox
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: f2b-dev/f2b-sandbox
           path: f2b-sandbox
