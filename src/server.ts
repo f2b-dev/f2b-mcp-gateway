@@ -95,12 +95,14 @@ export function createMcpServer(client: F2bClient): McpServer {
     "sandbox_run",
     {
       title: "执行命令",
-      description: "在指定沙箱中执行 shell 命令，返回 stdout/stderr/exitCode。",
+      description:
+        "在指定沙箱中执行 shell 命令，返回 stdout/stderr/exitCode。可传 cwd / env / timeoutMs。",
       inputSchema: {
         sandboxId: z.string(),
         cmd: z.string().describe("要执行的命令"),
         cwd: z.string().optional(),
         timeoutMs: z.number().int().positive().optional(),
+        env: z.record(z.string()).optional(),
       },
     },
     async (args) => h.sandbox_run(args),

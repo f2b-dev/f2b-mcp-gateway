@@ -114,12 +114,14 @@ export function createToolHandlers(client: F2bClient) {
       cmd: string;
       cwd?: string;
       timeoutMs?: number;
+      env?: Record<string, string>;
     }) {
       try {
         const sb = await client.getSandbox(input.sandboxId);
         const result = await sb.run(input.cmd, {
           cwd: input.cwd,
           timeoutMs: input.timeoutMs,
+          env: input.env,
         });
         return textResult({ result });
       } catch (err) {

@@ -111,6 +111,34 @@ async function main() {
   }
   console.log("run ok");
 
+  const ranOpts = await client.callTool({
+    name: "sandbox_run",
+    arguments: {
+      sandboxId: id,
+      cmd: "pwd",
+      cwd: "/tmp",
+      env: { MCP_ENV: "1" },
+    },
+  });
+  if (ranOpts.isError) throw new Error(textOf(ranOpts as never));
+  const optsText = textOf(ranOpts as never);
+  if (!optsText.includes("/tmp")) {
+    throw new Error(`cwd not applied: ${optsText}`);
+  }
+  const envRun = await client.callTool({
+    name: "sandbox_run",
+    arguments: {
+      sandboxId: id,
+      cmd: "printenv MCP_ENV",
+      env: { MCP_ENV: "ok" },
+    },
+  });
+  if (envRun.isError) throw new Error(textOf(envRun as never));
+  if (!textOf(envRun as never).includes("ok")) {
+    throw new Error(`env not applied: ${textOf(envRun as never)}`);
+  }
+  console.log("run cwd/env ok");
+
   const paused = await client.callTool({
     name: "sandbox_pause",
     arguments: { sandboxId: id },
