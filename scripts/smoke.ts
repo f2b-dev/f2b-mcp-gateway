@@ -27,6 +27,12 @@ async function main() {
     throw new Error(`f2b-sandbox unreachable at ${baseUrl}`);
   }
 
+  const tunnelUrl = (
+    process.env.F2B_TUNNEL_URL ||
+    process.env.TUNNEL_URL ||
+    "http://127.0.0.1:8790"
+  ).replace(/\/$/, "");
+
   const transport = new StdioClientTransport({
     command: "pnpm",
     args: ["exec", "tsx", "src/index.ts"],
@@ -34,6 +40,8 @@ async function main() {
     env: {
       ...process.env,
       F2B_SANDBOX_URL: baseUrl,
+      F2B_TUNNEL_URL: tunnelUrl,
+      F2B_TUNNEL_PATH_PREFIX: process.env.F2B_TUNNEL_PATH_PREFIX || "/v1",
     },
     stderr: "pipe",
   });
@@ -214,6 +222,78 @@ async function main() {
     );
   }
   console.log("files base64 ok");
+
+  // 可选：隧道（需 F2B_TUNNEL_URL 可达）
+  const tunnelHz = await fetch(`${tunnelUrl}/healthz`).catch(() => null);
+  if (tunnelHz?.ok) {
+    const http = await import("node:http");
+    const marker = "mcp-tunnel-ok";
+    const upstream = http.createServer((_req, res) => {
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: true, marker }));
+    });
+    await new Promise<void>((resolve) => upstream.listen(0, "127.0.0.1", resolve));
+    const addr = upstream.address();
+    if (!addr || typeof addr === "string") {
+      throw new Error("failed to bind upstream");
+    }
+    const port = addr.port;
+    try {
+      const createdTun = await client.callTool({
+        name: "tunnel_create",
+        arguments: {
+          sandboxId: id,
+          port,
+          name: "mcp-smoke-tun",
+          targetUrl: `http://127.0.0.1:${port}`,
+        },
+      });
+      if (createdTun.isError) throw new Error(textOf(createdTun as never));
+      const tunJson = JSON.parse(textOf(createdTun as never)) as {
+        tunnel: { id: string; publicUrl: string; status: string };
+      };
+      const publicUrl = tunJson.tunnel.publicUrl;
+      if (!publicUrl) throw new Error("tunnel missing publicUrl");
+      const proxied = await fetch(
+        publicUrl.endsWith("/") ? `${publicUrl}hello` : `${publicUrl}/hello`,
+      );
+      const body = await proxied.text();
+      if (!body.includes(marker)) {
+        throw new Error(`tunnel proxy failed: ${proxied.status} ${body}`);
+      }
+      const listed = await client.callTool({
+        name: "tunnel_list",
+        arguments: { sandboxId: id },
+      });
+      if (listed.isError) throw new Error(textOf(listed as never));
+      if (!textOf(listed as never).includes(tunJson.tunnel.id)) {
+        throw new Error("tunnel_list missing created id");
+      }
+      const got = await client.callTool({
+        name: "tunnel_get",
+        arguments: { tunnelId: tunJson.tunnel.id },
+      });
+      if (got.isError) throw new Error(textOf(got as never));
+      const closed = await client.callTool({
+        name: "tunnel_close",
+        arguments: { tunnelId: tunJson.tunnel.id },
+      });
+      if (closed.isError) throw new Error(textOf(closed as never));
+      const closedJson = JSON.parse(textOf(closed as never)) as {
+        tunnel: { status: string };
+      };
+      if (closedJson.tunnel.status !== "closed") {
+        throw new Error(`expected closed, got ${closedJson.tunnel.status}`);
+      }
+      console.log("tunnel ok", tunJson.tunnel.id);
+    } finally {
+      await new Promise<void>((resolve, reject) =>
+        upstream.close((err) => (err ? reject(err) : resolve())),
+      );
+    }
+  } else {
+    console.log("tunnel skip (no healthz at", tunnelUrl + ")");
+  }
 
   const killed = await client.callTool({
     name: "sandbox_kill",

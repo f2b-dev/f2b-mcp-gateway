@@ -5,12 +5,12 @@
 | 项 | 说明 |
 |----|------|
 | 传输 | **stdio**（V1）；Streamable HTTP 后置 |
-| 上游 | [f2b-sandbox](https://github.com/f2b-dev/f2b-sandbox) `/v1`（经 [@f2b/sdk](https://github.com/f2b-dev/f2b-sdk-js)） |
-| 密钥 | 仅进程 env：`F2B_API_KEY` / `F2B_SANDBOX_URL`；**不向客户端回显** |
+| 上游 | [f2b-sandbox](https://github.com/f2b-dev/f2b-sandbox) `/v1` + 可选 [f2b-tunnel](https://github.com/f2b-dev/f2b-tunnel)（经 [@f2b/sdk](https://github.com/f2b-dev/f2b-sdk-js)） |
+| 密钥 | 仅进程 env：`F2B_API_KEY` / `F2B_SANDBOX_URL` / `F2B_TUNNEL_URL`；**不向客户端回显** |
 
 ## 工具映射
 
-| MCP tool | 沙箱能力 |
+| MCP tool | 上游能力 |
 |----------|----------|
 | `sandbox_create` | `POST /v1/sandboxes`（可选 `metadata`） |
 | `sandbox_list` | `GET /v1/sandboxes`（可选 `status`） |
@@ -28,16 +28,20 @@
 | `sandbox_templates` | `GET /v1/templates` |
 | `sandbox_usage` | `GET /v1/usage` |
 | `sandbox_kill` | `DELETE /v1/sandboxes/{id}` |
+| `tunnel_list` | `GET /v1/tunnels` |
+| `tunnel_create` | `POST /v1/tunnels` |
+| `tunnel_get` | `GET /v1/tunnels/{id}` |
+| `tunnel_close` | `DELETE /v1/tunnels/{id}` |
 
 ## 本地开发
 
-前置：`f2b-sandbox` 在 `http://127.0.0.1:13287` 运行（`F2B_AUTH_MODE=off` 或提供 `F2B_API_KEY`）。
+前置：`f2b-sandbox` 在 `http://127.0.0.1:13287` 运行（`F2B_AUTH_MODE=off` 或提供 `F2B_API_KEY`）。隧道工具需 `f2b-tunnel` `:8790`（smoke 无 tunnel 时自动 skip 代理段，但工具仍注册）。
 
 ```bash
 # 同级目录需有 f2b-sdk-js、f2b-spec（file: 依赖）
 pnpm install
 pnpm typecheck
-pnpm smoke          # → MCP_SMOKE_OK
+pnpm smoke          # → MCP_SMOKE_OK（有 tunnel 时打印 tunnel ok）
 pnpm start          # stdio 服务（需 MCP 客户端拉起）
 ```
 
@@ -46,7 +50,9 @@ pnpm start          # stdio 服务（需 MCP 客户端拉起）
 | 变量 | 默认 | 说明 |
 |------|------|------|
 | `F2B_SANDBOX_URL` | `http://127.0.0.1:13287` | 沙箱服务根 URL |
-| `F2B_PATH_PREFIX` | `/v1` | API 前缀 |
+| `F2B_PATH_PREFIX` | `/v1` | 沙箱 API 前缀 |
+| `F2B_TUNNEL_URL` | 同 `F2B_SANDBOX_URL` | 隧道服务根；直连 tunnel 时设 `http://127.0.0.1:8790` |
+| `F2B_TUNNEL_PATH_PREFIX` | `/v1` | 隧道 API 前缀；经 BFF 时用 `/api` |
 | `F2B_API_KEY` | （空） | 用户 API Key；鉴权关闭时可省略 |
 
 ### Claude Desktop 示例配置
@@ -59,6 +65,7 @@ pnpm start          # stdio 服务（需 MCP 客户端拉起）
       "args": ["--dir", "/path/to/f2b-mcp-gateway", "exec", "tsx", "src/index.ts"],
       "env": {
         "F2B_SANDBOX_URL": "http://127.0.0.1:13287",
+        "F2B_TUNNEL_URL": "http://127.0.0.1:8790",
         "F2B_API_KEY": "f2b_sk_…"
       }
     }
@@ -68,7 +75,7 @@ pnpm start          # stdio 服务（需 MCP 客户端拉起）
 
 ## 安全
 
-- 网关**不**持有 / 转发 Cube 管理密钥；只持用户侧 `F2B_API_KEY` 调灵境云沙箱 HTTP。
+- 网关**不**持有 / 转发 Cube 管理密钥；只持用户侧 `F2B_API_KEY` 调灵境云产品 HTTP。
 - 日志写 **stderr**；stdout 专供 MCP JSON-RPC。
 - 正式 npm 发布延后到产品 1.0；现阶段 `file:` / git 依赖。
 
@@ -76,6 +83,7 @@ pnpm start          # stdio 服务（需 MCP 客户端拉起）
 
 - 契约：[f2b-spec](https://github.com/f2b-dev/f2b-spec)
 - 沙箱服务：[f2b-sandbox](https://github.com/f2b-dev/f2b-sandbox)
+- 隧道：[f2b-tunnel](https://github.com/f2b-dev/f2b-tunnel)
 - TS SDK：[f2b-sdk-js](https://github.com/f2b-dev/f2b-sdk-js)
 - 文档：[f2b-docs](https://github.com/f2b-dev/f2b-docs)
 

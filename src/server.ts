@@ -253,5 +253,64 @@ export function createMcpServer(client: F2bClient): McpServer {
     async (args) => h.sandbox_kill(args),
   );
 
+  server.registerTool(
+    "tunnel_list",
+    {
+      title: "列出预览隧道",
+      description:
+        "列出预览隧道；可按 sandboxId 过滤。依赖 F2B_TUNNEL_URL（或与 BFF 同 host）。",
+      inputSchema: {
+        sandboxId: z.string().optional(),
+      },
+    },
+    async (args) => h.tunnel_list(args),
+  );
+
+  server.registerTool(
+    "tunnel_create",
+    {
+      title: "创建预览隧道",
+      description:
+        "把沙箱端口登记为预览 URL。开发态可传 targetUrl 指向本机 HTTP 服务。",
+      inputSchema: {
+        sandboxId: z.string(),
+        port: z.number().int().min(1).max(65535),
+        name: z.string().optional(),
+        targetUrl: z
+          .string()
+          .url()
+          .optional()
+          .describe("开发态上游，如 http://127.0.0.1:3000"),
+        projectId: z.string().optional(),
+        ttlSec: z.number().int().positive().optional(),
+      },
+    },
+    async (args) => h.tunnel_create(args),
+  );
+
+  server.registerTool(
+    "tunnel_get",
+    {
+      title: "隧道详情",
+      description: "按 tunnelId 查询预览隧道状态与 publicUrl。",
+      inputSchema: {
+        tunnelId: z.string(),
+      },
+    },
+    async (args) => h.tunnel_get(args),
+  );
+
+  server.registerTool(
+    "tunnel_close",
+    {
+      title: "关闭预览隧道",
+      description: "关闭隧道；幂等返回 closed 状态。",
+      inputSchema: {
+        tunnelId: z.string(),
+      },
+    },
+    async (args) => h.tunnel_close(args),
+  );
+
   return server;
 }

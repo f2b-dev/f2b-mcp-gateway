@@ -10,6 +10,8 @@ export function createClient(cfg: GatewayConfig): F2bClient {
     baseUrl: cfg.sandboxBaseUrl,
     pathPrefix: cfg.pathPrefix,
     apiKey: cfg.apiKey,
+    tunnelBaseUrl: cfg.tunnelBaseUrl,
+    tunnelPathPrefix: cfg.tunnelPathPrefix,
   });
 }
 
@@ -267,6 +269,61 @@ export function createToolHandlers(client: F2bClient) {
         return errorResult(err);
       }
     },
+
+    /** 列出预览隧道（可选按 sandboxId 过滤） */
+    async tunnel_list(input: { sandboxId?: string }) {
+      try {
+        const tunnels = await client.listTunnels(input.sandboxId);
+        return textResult({ tunnels });
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+
+    /**
+     * 创建预览隧道。
+     * dev 可传 targetUrl 指向本机 HTTP；生产由 tunnel 服务解析 sandbox 网络。
+     */
+    async tunnel_create(input: {
+      sandboxId: string;
+      port: number;
+      name?: string;
+      targetUrl?: string;
+      projectId?: string;
+      ttlSec?: number;
+    }) {
+      try {
+        const tunnel = await client.createTunnel({
+          sandboxId: input.sandboxId,
+          port: input.port,
+          name: input.name,
+          targetUrl: input.targetUrl,
+          projectId: input.projectId,
+          ttlSec: input.ttlSec,
+        });
+        return textResult({ tunnel });
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+
+    async tunnel_get(input: { tunnelId: string }) {
+      try {
+        const tunnel = await client.getTunnel(input.tunnelId);
+        return textResult({ tunnel });
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+
+    async tunnel_close(input: { tunnelId: string }) {
+      try {
+        const tunnel = await client.closeTunnel(input.tunnelId);
+        return textResult({ tunnel });
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
   };
 }
 
@@ -288,4 +345,8 @@ export const TOOL_NAMES = [
   "sandbox_templates",
   "sandbox_usage",
   "sandbox_kill",
+  "tunnel_list",
+  "tunnel_create",
+  "tunnel_get",
+  "tunnel_close",
 ] as const;

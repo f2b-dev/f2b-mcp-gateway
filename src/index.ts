@@ -15,7 +15,7 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error(
-    `f2b-mcp-gateway ready sandbox=${cfg.sandboxBaseUrl} prefix=${cfg.pathPrefix}`,
+    `f2b-mcp-gateway ready sandbox=${cfg.sandboxBaseUrl} prefix=${cfg.pathPrefix} tunnel=${cfg.tunnelBaseUrl}${cfg.tunnelPathPrefix}`,
   );
 }
 
