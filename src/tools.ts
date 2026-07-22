@@ -132,6 +132,20 @@ export function createToolHandlers(client: F2bClient) {
       }
     },
 
+    async sandbox_delete_file(input: {
+      sandboxId: string;
+      path: string;
+      recursive?: boolean;
+    }) {
+      try {
+        const sb = await client.getSandbox(input.sandboxId);
+        await sb.deleteFile(input.path, { recursive: input.recursive });
+        return textResult({ ok: true, path: input.path });
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+
     async sandbox_pause(input: { sandboxId: string }) {
       try {
         const sb = await client.getSandbox(input.sandboxId);
@@ -191,6 +205,7 @@ export const TOOL_NAMES = [
   "sandbox_write_file",
   "sandbox_read_file",
   "sandbox_list_files",
+  "sandbox_delete_file",
   "sandbox_pause",
   "sandbox_resume",
   "sandbox_templates",

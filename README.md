@@ -17,6 +17,7 @@
 | `sandbox_get` | `GET /v1/sandboxes/{id}` |
 | `sandbox_run` | `POST /v1/sandboxes/{id}/commands` |
 | `sandbox_write_file` | `POST /v1/sandboxes/{id}/files` |
+| `sandbox_delete_file` | `DELETE /v1/sandboxes/{id}/files?path=` |
 | `sandbox_read_file` | `GET /v1/sandboxes/{id}/files?path=` |
 | `sandbox_list_files` | `GET .../files?list=1` |
 | `sandbox_pause` | `POST .../pause` |

@@ -114,6 +114,21 @@ export function createMcpServer(client: F2bClient): McpServer {
   );
 
   server.registerTool(
+    "sandbox_delete_file",
+    {
+      title: "删除文件",
+      description:
+        "删除沙箱内文件；目录需 recursive=true。路径须为绝对路径。",
+      inputSchema: {
+        sandboxId: z.string(),
+        path: z.string().describe("绝对路径"),
+        recursive: z.boolean().optional().describe("目录递归删除"),
+      },
+    },
+    async (args) => h.sandbox_delete_file(args),
+  );
+
+  server.registerTool(
     "sandbox_pause",
     {
       title: "暂停沙箱",
