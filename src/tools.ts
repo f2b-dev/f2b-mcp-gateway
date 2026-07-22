@@ -133,21 +133,33 @@ export function createToolHandlers(client: F2bClient) {
       sandboxId: string;
       path: string;
       content: string;
+      encoding?: "utf8" | "base64";
     }) {
       try {
         const sb = await client.getSandbox(input.sandboxId);
-        await sb.write(input.path, input.content);
-        return textResult({ ok: true, path: input.path });
+        await sb.write(input.path, input.content, {
+          encoding: input.encoding ?? "utf8",
+        });
+        return textResult({
+          ok: true,
+          path: input.path,
+          encoding: input.encoding ?? "utf8",
+        });
       } catch (err) {
         return errorResult(err);
       }
     },
 
-    async sandbox_read_file(input: { sandboxId: string; path: string }) {
+    async sandbox_read_file(input: {
+      sandboxId: string;
+      path: string;
+      encoding?: "utf8" | "base64";
+    }) {
       try {
         const sb = await client.getSandbox(input.sandboxId);
-        const content = await sb.read(input.path);
-        return textResult({ path: input.path, content });
+        const encoding = input.encoding ?? "utf8";
+        const content = await sb.read(input.path, { encoding });
+        return textResult({ path: input.path, content, encoding });
       } catch (err) {
         return errorResult(err);
       }

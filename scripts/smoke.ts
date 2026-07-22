@@ -179,6 +179,42 @@ async function main() {
   });
   if (usage.isError) throw new Error(textOf(usage as never));
 
+  // base64 写读
+  const raw = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const b64 = raw.toString("base64");
+  const wrote = await client.callTool({
+    name: "sandbox_write_file",
+    arguments: {
+      sandboxId: id,
+      path: "/home/user/mcp.bin",
+      content: b64,
+      encoding: "base64",
+    },
+  });
+  if (wrote.isError) throw new Error(textOf(wrote as never));
+  const readB64 = await client.callTool({
+    name: "sandbox_read_file",
+    arguments: {
+      sandboxId: id,
+      path: "/home/user/mcp.bin",
+      encoding: "base64",
+    },
+  });
+  if (readB64.isError) throw new Error(textOf(readB64 as never));
+  const readJson = JSON.parse(textOf(readB64 as never)) as {
+    content: string;
+    encoding?: string;
+  };
+  if (readJson.encoding !== "base64") {
+    throw new Error(`expected base64 encoding, got ${readJson.encoding}`);
+  }
+  if (Buffer.from(readJson.content, "base64").compare(raw) !== 0) {
+    throw new Error(
+      `base64 roundtrip mismatch: ${readJson.content} vs ${b64}`,
+    );
+  }
+  console.log("files base64 ok");
+
   const killed = await client.callTool({
     name: "sandbox_kill",
     arguments: { sandboxId: id },

@@ -112,11 +112,13 @@ export function createMcpServer(client: F2bClient): McpServer {
     "sandbox_write_file",
     {
       title: "写文件",
-      description: "向沙箱写入 UTF-8 文本文件（绝对路径）。",
+      description:
+        "向沙箱写文件（绝对路径）。encoding 默认 utf8；base64 时 content 为 base64 文本。",
       inputSchema: {
         sandboxId: z.string(),
         path: z.string().describe("绝对路径，如 /home/user/a.txt"),
         content: z.string(),
+        encoding: z.enum(["utf8", "base64"]).optional(),
       },
     },
     async (args) => h.sandbox_write_file(args),
@@ -126,10 +128,12 @@ export function createMcpServer(client: F2bClient): McpServer {
     "sandbox_read_file",
     {
       title: "读文件",
-      description: "读取沙箱内 UTF-8 文件内容。",
+      description:
+        "读取沙箱文件。encoding 默认 utf8；base64 返回 base64 文本（适合二进制）。",
       inputSchema: {
         sandboxId: z.string(),
         path: z.string(),
+        encoding: z.enum(["utf8", "base64"]).optional(),
       },
     },
     async (args) => h.sandbox_read_file(args),
