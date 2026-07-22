@@ -43,6 +43,8 @@ export function createToolHandlers(client: F2bClient) {
       timeoutMs?: number;
       allowInternetAccess?: boolean;
       projectId?: string;
+      /** 用户标签 string→string；控制面持久化 */
+      metadata?: Record<string, string>;
     }) {
       try {
         const body: Partial<CreateSandboxInput> = {
@@ -51,6 +53,7 @@ export function createToolHandlers(client: F2bClient) {
           timeoutMs: input.timeoutMs,
           allowInternetAccess: input.allowInternetAccess,
           projectId: input.projectId,
+          metadata: input.metadata,
         };
         const sb = await client.createSandbox(body);
         return textResult({ sandbox: sb.data });
@@ -74,6 +77,32 @@ export function createToolHandlers(client: F2bClient) {
     async sandbox_get(input: { sandboxId: string }) {
       try {
         const sb = await client.getSandbox(input.sandboxId);
+        return textResult({ sandbox: sb.data });
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+
+    /** 延期 timeoutMs 和/或浅合并 metadata（仅活动沙箱） */
+    async sandbox_update(input: {
+      sandboxId: string;
+      timeoutMs?: number | null;
+      metadata?: Record<string, string>;
+    }) {
+      try {
+        if (input.timeoutMs === undefined && input.metadata === undefined) {
+          return errorResult(
+            new Error("at least one of timeoutMs, metadata required"),
+          );
+        }
+        const sb = await client.updateSandbox(input.sandboxId, {
+          ...(input.timeoutMs !== undefined
+            ? { timeoutMs: input.timeoutMs }
+            : {}),
+          ...(input.metadata !== undefined
+            ? { metadata: input.metadata }
+            : {}),
+        });
         return textResult({ sandbox: sb.data });
       } catch (err) {
         return errorResult(err);
@@ -204,6 +233,7 @@ export const TOOL_NAMES = [
   "sandbox_create",
   "sandbox_list",
   "sandbox_get",
+  "sandbox_update",
   "sandbox_run",
   "sandbox_write_file",
   "sandbox_read_file",

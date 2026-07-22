@@ -50,14 +50,55 @@ async function main() {
 
   const created = await client.callTool({
     name: "sandbox_create",
-    arguments: { name: "mcp-smoke", template: "base" },
+    arguments: {
+      name: "mcp-smoke",
+      template: "base",
+      timeoutMs: 600_000,
+      metadata: { smoke: "1", owner: "mcp" },
+    },
   });
   if (created.isError) throw new Error(textOf(created as never));
   const createdJson = JSON.parse(textOf(created as never)) as {
-    sandbox: { id: string };
+    sandbox: { id: string; metadata?: Record<string, string>; timeoutMs?: number | null };
   };
   const id = createdJson.sandbox.id;
-  console.log("created", id);
+  if (createdJson.sandbox.metadata?.smoke !== "1") {
+    throw new Error(
+      `create metadata missing smoke=1: ${JSON.stringify(createdJson.sandbox.metadata)}`,
+    );
+  }
+  console.log("created", id, "meta", createdJson.sandbox.metadata);
+
+  const updated = await client.callTool({
+    name: "sandbox_update",
+    arguments: {
+      sandboxId: id,
+      timeoutMs: 900_000,
+      metadata: { smoke: "2", phase: "update" },
+    },
+  });
+  if (updated.isError) throw new Error(textOf(updated as never));
+  const updatedJson = JSON.parse(textOf(updated as never)) as {
+    sandbox: {
+      timeoutMs: number | null;
+      metadata: Record<string, string>;
+    };
+  };
+  if (updatedJson.sandbox.timeoutMs !== 900_000) {
+    throw new Error(
+      `expected timeoutMs 900000, got ${updatedJson.sandbox.timeoutMs}`,
+    );
+  }
+  if (
+    updatedJson.sandbox.metadata?.smoke !== "2" ||
+    updatedJson.sandbox.metadata?.owner !== "mcp" ||
+    updatedJson.sandbox.metadata?.phase !== "update"
+  ) {
+    throw new Error(
+      `update metadata merge failed: ${JSON.stringify(updatedJson.sandbox.metadata)}`,
+    );
+  }
+  console.log("update ok", updatedJson.sandbox.metadata);
 
   const ran = await client.callTool({
     name: "sandbox_run",

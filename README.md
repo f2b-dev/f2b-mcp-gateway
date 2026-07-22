@@ -12,9 +12,10 @@
 
 | MCP tool | 沙箱能力 |
 |----------|----------|
-| `sandbox_create` | `POST /v1/sandboxes` |
-| `sandbox_list` | `GET /v1/sandboxes` |
+| `sandbox_create` | `POST /v1/sandboxes`（可选 `metadata`） |
+| `sandbox_list` | `GET /v1/sandboxes`（可选 `status`） |
 | `sandbox_get` | `GET /v1/sandboxes/{id}` |
+| `sandbox_update` | `PATCH /v1/sandboxes/{id}`（`timeoutMs` / `metadata`） |
 | `sandbox_run` | `POST /v1/sandboxes/{id}/commands` |
 | `sandbox_write_file` | `POST /v1/sandboxes/{id}/files` |
 | `sandbox_delete_file` | `DELETE /v1/sandboxes/{id}/files?path=` |

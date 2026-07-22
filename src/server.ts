@@ -29,6 +29,10 @@ export function createMcpServer(client: F2bClient): McpServer {
         timeoutMs: z.number().int().positive().optional(),
         allowInternetAccess: z.boolean().optional(),
         projectId: z.string().optional(),
+        metadata: z
+          .record(z.string())
+          .optional()
+          .describe("用户标签 string→string，控制面持久化"),
       },
     },
     async (args) => h.sandbox_create(args),
@@ -61,6 +65,30 @@ export function createMcpServer(client: F2bClient): McpServer {
       },
     },
     async (args) => h.sandbox_get(args),
+  );
+
+  server.registerTool(
+    "sandbox_update",
+    {
+      title: "更新沙箱",
+      description:
+        "延期 timeoutMs（null 取消）和/或浅合并 metadata；仅活动沙箱（running/paused/provisioning）。至少传一项。",
+      inputSchema: {
+        sandboxId: z.string().describe("沙箱 id"),
+        timeoutMs: z
+          .number()
+          .int()
+          .positive()
+          .nullable()
+          .optional()
+          .describe("新超时毫秒；null 取消超时"),
+        metadata: z
+          .record(z.string())
+          .optional()
+          .describe("浅合并进现有 metadata"),
+      },
+    },
+    async (args) => h.sandbox_update(args),
   );
 
   server.registerTool(
