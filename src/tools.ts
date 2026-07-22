@@ -59,9 +59,12 @@ export function createToolHandlers(client: F2bClient) {
       }
     },
 
-    async sandbox_list(input: { projectId?: string }) {
+    async sandbox_list(input: { projectId?: string; status?: string }) {
       try {
-        const sandboxes = await client.listSandboxes(input.projectId);
+        const sandboxes = await client.listSandboxes({
+          projectId: input.projectId,
+          status: input.status,
+        });
         return textResult({ sandboxes });
       } catch (err) {
         return errorResult(err);

@@ -38,9 +38,14 @@ export function createMcpServer(client: F2bClient): McpServer {
     "sandbox_list",
     {
       title: "列出沙箱",
-      description: "列出当前可见的沙箱；可按 projectId 过滤。",
+      description:
+        "列出当前可见的沙箱；可按 projectId、status（逗号多状态）过滤。",
       inputSchema: {
         projectId: z.string().optional(),
+        status: z
+          .string()
+          .optional()
+          .describe("如 running 或 running,paused"),
       },
     },
     async (args) => h.sandbox_list(args),
